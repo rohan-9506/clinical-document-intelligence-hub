@@ -9,3 +9,4 @@ motor
 pymongo
 pymupdf
 groq
+python-dotenv
