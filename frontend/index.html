@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediLyft Hub — Clinical Intelligence Platform</title>
+    <meta name="description" content="AI-powered clinical document intelligence extraction and analysis platform.">
+    <link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+
+<!-- ============================================
+     PROCESSING OVERLAY
+     ============================================ -->
+<div class="processing-overlay" id="processingOverlay">
+    <div class="processing-ring">
+        <svg viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3b82f6"/>
+                    <stop offset="100%" stop-color="#10b981"/>
+                </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="50" cy="50" r="45"/>
+            <circle class="ring-fill" id="ringFill" cx="50" cy="50" r="45"/>
+        </svg>
+        <div class="ring-icon">🧬</div>
+    </div>
+    <p class="processing-title" id="processingTitle">Analyzing Documents...</p>
+    <div class="processing-steps">
+        <div class="processing-step" id="step1">
+            <div class="step-icon">📄</div>
+            <span>Parsing & rendering document pages</span>
+        </div>
+        <div class="processing-step" id="step2">
+            <div class="step-icon">🔍</div>
+            <span>AI extraction pass — reading content</span>
+        </div>
+        <div class="processing-step" id="step3">
+            <div class="step-icon">🔬</div>
+            <span>AI auditor — verifying & scoring fields</span>
+        </div>
+        <div class="processing-step" id="step4">
+            <div class="step-icon">✅</div>
+            <span>Building intelligence dashboard</span>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     TOAST CONTAINER
+     ============================================ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================================
+     APP SHELL
+     ============================================ -->
+<div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo" onclick="showView('gridDashboardView')" id="logoBtn">
+            <span class="logo-icon">🧬</span>
+            <h2>MediLyft Hub</h2>
+        </div>
+
+        <button class="btn-primary" onclick="startNewSession()" id="newUploadBtn">
+            + New Upload
+        </button>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <span class="sidebar-section-label">Navigation</span>
+            <a href="#" class="nav-item active" onclick="showView('gridDashboardView')" id="navDashboard">
+                <span>📊</span> All Patients
+            </a>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.5rem; flex:1;">
+            <span class="sidebar-section-label">Recent Documents</span>
+            <ul class="patient-list" id="patientList"></ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- VIEW 1: Upload -->
+        <section id="uploadView" class="view active">
+            <h1>Document Ingestion</h1>
+            <p>Upload clinical documents to extract structured intelligence</p>
+
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-content">
+                    <div class="upload-icon-ring">📄</div>
+                    <h3>Drag &amp; Drop Documents</h3>
+                    <p>or click to browse &mdash; PDF, JPG, PNG supported</p>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png" hidden>
+                </div>
+            </div>
+
+            <div class="upload-queue" id="uploadQueue"></div>
+
+            <button class="btn-primary analyze-btn hidden" id="analyzeBtn">
+                Generate Intelligence
+            </button>
+        </section>
+
+        <!-- VIEW 2: Grid Dashboard -->
+        <section id="gridDashboardView" class="view hidden">
+            <div class="view-header">
+                <div>
+                    <h2>Patient Intelligence Overview</h2>
+                    <p>Click any card to open the full intelligence dashboard</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📁</div>
+                    <div>
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Documents Processed</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">🚨</div>
+                    <div>
+                        <div class="stat-value" id="statHighRisk">0</div>
+                        <div class="stat-label">High Risk Patients</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">✅</div>
+                    <div>
+                        <div class="stat-value" id="statAvgConf">—</div>
+                        <div class="stat-label">Avg. Confidence</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">💊</div>
+                    <div>
+                        <div class="stat-value" id="statTotalMeds">0</div>
+                        <div class="stat-label">Medications Tracked</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Grid -->
+            <div class="patient-grid" id="patientGrid">
+                <div class="empty-state" id="emptyGridState">
+                    <div class="empty-state-icon">📂</div>
+                    <h3>No Documents Processed</h3>
+                    <p>Upload clinical documents to populate your intelligence dashboard.</p>
+                    <button class="btn-primary" style="width:auto; margin-top:0.5rem" onclick="startNewSession()">Upload Now</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: Patient Detail (Split Screen) -->
+        <section id="dashboardView" class="view hidden">
+            <div class="detail-topbar">
+                <button class="btn-secondary" onclick="showView('gridDashboardView')">
+                    ← Overview
+                </button>
+                <span id="docTypeBadge">📄 Document Type</span>
+                <span id="consensusBadge" style="margin-left:auto; display:inline-flex; align-items:center; gap:0.4rem; padding:0.4rem 0.875rem; border-radius:999px; font-size:0.8rem; font-weight:600; background:rgba(139,92,246,0.12); color:#a78bfa; border:1px solid rgba(139,92,246,0.2);">🤖 Models: —</span>
+            </div>
+
+            <div class="split-screen">
+                <!-- Left: PDF Viewer -->
+                <div class="document-viewer">
+                    <div class="viewer-header">Source Document</div>
+                    <div class="pdf-container" id="pdfContainer"></div>
+                </div>
+
+                <!-- Right: Intelligence Panel -->
+                <div class="intelligence-panel" id="intelligencePanel">
+
+                    <!-- Patient Overview + Urgency -->
+                    <div class="glass-card">
+                        <div class="card-section-title">
+                            Patient Overview
+                            <span class="conf-pill" id="patientConfPill">— Conf</span>
+                        </div>
+                        <div class="patient-grid-2col" id="patientDetails">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+
+                    <!-- Urgency Dial -->
+                    <div class="glass-card">
+                        <div class="card-section-title">
+                            Urgency Level
+                            <span class="conf-pill" id="urgencyConfPill">— Conf</span>
+                        </div>
+                        <div class="urgency-dial-container">
+                            <div class="urgency-dial">
+                                <svg viewBox="0 0 80 80">
+                                    <circle class="dial-track" cx="40" cy="40" r="32"/>
+                                    <circle class="dial-fill" id="dialFill" cx="40" cy="40" r="32"/>
+                                </svg>
+                                <div class="dial-center-text">
+                                    <span class="dial-score" id="dialScore">—</span>
+                                    <span class="dial-unit">/ 10</span>
+                                </div>
+                            </div>
+                            <div class="urgency-info">
+                                <h4 id="urgencyLabel">—</h4>
+                                <p id="urgencyDesc">Urgency assessment will appear here after analysis.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clinical Summary -->
+                    <div class="glass-card">
+                        <div class="card-section-title">
+                            Document Summary
+                            <span class="conf-pill" id="summaryConfPill">— Conf</span>
+                        </div>
+                        <p id="clinicalSummary" style="font-size:0.9rem; line-height:1.7; color:var(--text-secondary);">Analyzing...</p>
+                    </div>
+
+                    <!-- Risk Flags -->
+                    <div class="glass-card">
+                        <div class="card-section-title">Risk Flags</div>
+                        <ul class="risk-list" id="riskList"></ul>
+                    </div>
+
+                    <!-- Medications -->
+                    <div class="glass-card">
+                        <div class="card-section-title">Medications</div>
+                        <ul class="med-list" id="medList"></ul>
+                    </div>
+
+                    <!-- Clinical Findings -->
+                    <div class="glass-card">
+                        <div class="card-section-title">Clinical Findings</div>
+                        <div class="findings-tag-cloud" id="findingsTags"></div>
+                    </div>
+
+                    <!-- ICD-10 Codes -->
+                    <div class="glass-card">
+                        <div class="card-section-title">ICD-10 Billing Codes</div>
+                        <ul class="icd-list" id="icdList"></ul>
+                    </div>
+
+                    <!-- Follow-up Actions -->
+                    <div class="glass-card">
+                        <div class="card-section-title">Follow-up Actions</div>
+                        <ul class="followup-list" id="followupList"></ul>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="app.js?v=3"></script>
+</body>
+</html>

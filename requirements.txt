@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+google-generativeai
+pdf2image
+Pillow
+pydantic
+motor
+pymongo
+pymupdf
+groq
