@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── State ──────────────────────────────────────────────────
     let currentFiles  = [];
     let patientHistory = [];
+    let currentPatientId = null;
 
     // Fetch history on load
     fetchPatientHistory();
@@ -229,6 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── PATIENT DETAIL VIEW ─────────────────────────────────────
     function openPatientDetail(data) {
+        currentPatientId = data._id;
+        
         // PDF Viewer
         if (data.file_id) {
             // Document retrieved securely from MongoDB GridFS
@@ -484,6 +487,36 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.value = '';
         currentFiles = [];
         analyzeBtn.classList.add('hidden');
+    };
+
+    window.deleteCurrentPatient = async function() {
+        if (!currentPatientId) return;
+        
+        if (!confirm("Are you sure you want to permanently delete this patient record and its associated document? This action cannot be undone.")) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/patients/${currentPatientId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                // Remove from local array
+                patientHistory = patientHistory.filter(p => p._id !== currentPatientId);
+                currentPatientId = null;
+                
+                // Update UI
+                renderGridDashboard();
+                showView('gridDashboardView');
+                showToast('success', '🗑️ Record deleted successfully.');
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.detail || 'Failed to delete record');
+            }
+        } catch (error) {
+            showToast('error', error.message);
+        }
     };
 
     // ─── HELPERS ─────────────────────────────────────────────────

@@ -65,6 +65,33 @@ async def get_document(file_id: str):
     except Exception as e:
         raise HTTPException(status_code=404, detail="Document not found")
 
+@app.delete("/api/patients/{patient_id}")
+async def delete_patient(patient_id: str):
+    """Deletes a patient record and its associated document from GridFS."""
+    try:
+        # Find the patient to get the file_id
+        patient = await app.mongodb["patients"].find_one({"_id": ObjectId(patient_id)})
+        if not patient:
+            raise HTTPException(status_code=404, detail="Patient not found")
+
+        # Delete from GridFS if it exists
+        file_id = patient.get("file_id")
+        if file_id:
+            try:
+                await app.gridfs.delete(ObjectId(file_id))
+            except Exception as gridfs_error:
+                print(f"Error deleting file from GridFS: {gridfs_error}")
+
+        # Delete the patient document
+        result = await app.mongodb["patients"].delete_one({"_id": ObjectId(patient_id)})
+        if result.deleted_count == 1:
+            return {"status": "success", "message": "Patient deleted successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete patient record")
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/analyze")
 async def analyze_documents(files: List[UploadFile] = File(...)):
     """

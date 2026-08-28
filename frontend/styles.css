@@ -50,7 +50,7 @@
 }
 
 html {
-    font-size: 200%; /* Doubles all rem units everywhere */
+    font-size: 100%;
 }
 
 html, body {
