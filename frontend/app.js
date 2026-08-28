@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // PDF Viewer
         if (data.file_id) {
             // Document retrieved securely from MongoDB GridFS
-            pdfContainer.innerHTML = `<iframe src="http://127.0.0.1:8000/api/documents/${data.file_id}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
+            pdfContainer.innerHTML = `<iframe src="/api/documents/${data.file_id}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
         } else if (data.fileUrl) {
             // Temporary fallback for older unsaved sessions
             pdfContainer.innerHTML = `<iframe src="${data.fileUrl}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchPatientHistory() {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/patients');
+            const response = await fetch('/api/patients');
             if (response.ok) {
                 const result = await response.json();
                 if (result.status === 'success') {
@@ -530,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.closeDeleteModal();
         
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/patients/${id}`, {
+            const response = await fetch(`/api/patients/${id}`, {
                 method: 'DELETE'
             });
             
