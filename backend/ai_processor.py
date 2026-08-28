@@ -93,18 +93,16 @@ def run_gemini(images: list) -> dict | None:
                     "max_output_tokens": 8192, "response_mime_type": "application/json"
                 }
             )
-            # Pass 1 — Extract
-            p1 = f"You are an expert clinical document analyzer. Extract all information from the document pages and return ONLY JSON matching this schema:\n{EXTRACTION_SCHEMA}\nFor handwritten text read carefully. Combine info across all pages."
+            # Single Pass — Extract and Score simultaneously
+            p1 = f"""You are an expert clinical document analyzer and auditor. 
+Extract all information from the document pages and verify its accuracy. 
+Assign a confidence_score (0-100) to every extracted field based on your certainty and the clarity of the text.
+Return ONLY valid JSON matching this exact schema:
+{VERIFIED_SCHEMA}
+For handwritten text, read carefully. Combine info across all pages."""
             r1 = model.generate_content([p1] + images)
 
-            # Pass 2 — Critic / Score
-            p2 = f"""You are a senior clinical auditor. Verify this draft JSON against the document pages.
-Correct any errors, then assign confidence_score (0-100) to every field.
-Draft:\n{r1.text}
-Return ONLY JSON matching:\n{VERIFIED_SCHEMA}"""
-            r2 = model.generate_content([p2] + images)
-
-            result = json.loads(r2.text.strip().strip("```json").strip("```"))
+            result = json.loads(r1.text.strip().strip("```json").strip("```"))
             print(f"[Gemini] Success with {model_name}")
             return result
         except Exception as e:
@@ -145,30 +143,22 @@ Read handwriting carefully. Combine info across all pages."""
                 "image_url": {"url": f"data:image/jpeg;base64,{b64}"}
             })
 
-        # Pass 1 — Extract
+        # Single Pass — Extract and Score simultaneously
+        content[0]["text"] = f"""You are an expert clinical document analyzer and auditor.
+Extract information from the attached document image(s) and verify its accuracy.
+Assign a confidence_score (0-100) to every extracted field based on your certainty.
+Return ONLY a JSON object matching this exact schema:
+{VERIFIED_SCHEMA}
+Read handwriting carefully. Combine info across all pages."""
+
         r1 = groq_client.chat.completions.create(
             model=GROQ_VISION_MODEL,
             messages=[{"role": "user", "content": content}],
             temperature=0.0,
             response_format={"type": "json_object"}
         )
-        draft = r1.choices[0].message.content
-
-        # Pass 2 — Critic / Score
-        r2 = groq_client.chat.completions.create(
-            model=GROQ_VISION_MODEL,
-            messages=[
-                {"role": "user", "content": content},
-                {"role": "assistant", "content": draft},
-                {"role": "user", "content": f"""Now act as a senior clinical auditor.
-Review your previous extraction. Verify accuracy, correct any errors,
-and assign a confidence_score (0-100) to every field.
-Return ONLY JSON matching:\n{VERIFIED_SCHEMA}"""}
-            ],
-            temperature=0.0,
-            response_format={"type": "json_object"}
-        )
-        result = json.loads(r2.choices[0].message.content)
+        
+        result = json.loads(r1.choices[0].message.content)
         print(f"[Groq] Success with {GROQ_VISION_MODEL}")
         return result
     except Exception as e:
