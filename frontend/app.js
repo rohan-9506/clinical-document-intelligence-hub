@@ -502,6 +502,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInput.value = '';
         currentFiles = [];
         analyzeBtn.classList.add('hidden');
+        
+        // Directly trigger the file selection dialog
+        setTimeout(() => {
+            fileInput.click();
+        }, 100);
     };
 
     window.deleteCurrentPatient = function() {
