@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFiles  = [];
     let patientHistory = [];
     let currentPatientId = null;
+    let pendingDeleteId = null;
 
     // Fetch history on load
     fetchPatientHistory();
@@ -429,11 +430,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const dt = patient.document_type || {};
             
             const li = document.createElement('li');
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+            li.style.alignItems = 'center';
+            
             li.innerHTML = `
-                <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.2rem;">${pi.name || 'Unknown Patient'}</div>
-                <div style="font-size:0.85rem;">${dt.type || 'Clinical Doc'}</div>
+                <div>
+                    <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.2rem;">${pi.name || 'Unknown Patient'}</div>
+                    <div style="font-size:0.85rem;">${dt.type || 'Clinical Doc'}</div>
+                </div>
+                <button class="sidebar-delete-btn" title="Delete record">🗑️</button>
             `;
-            li.addEventListener('click', () => {
+            
+            li.addEventListener('click', (e) => {
+                // If they clicked the delete button, don't open the detail view
+                if (e.target.closest('.sidebar-delete-btn')) {
+                    e.stopPropagation();
+                    window.deletePatient(patient._id);
+                    return;
+                }
                 openPatientDetail(patient);
             });
             list.appendChild(li);
@@ -489,26 +504,43 @@ document.addEventListener('DOMContentLoaded', () => {
         analyzeBtn.classList.add('hidden');
     };
 
-    window.deleteCurrentPatient = async function() {
-        if (!currentPatientId) return;
-        
-        if (!confirm("Are you sure you want to permanently delete this patient record and its associated document? This action cannot be undone.")) {
-            return;
-        }
+    window.deleteCurrentPatient = function() {
+        window.deletePatient(currentPatientId);
+    };
+
+    window.deletePatient = function(id) {
+        if (!id) return;
+        pendingDeleteId = id;
+        document.getElementById('deleteModalOverlay').classList.add('active');
+    };
+
+    window.closeDeleteModal = function() {
+        pendingDeleteId = null;
+        document.getElementById('deleteModalOverlay').classList.remove('active');
+    };
+
+    window.confirmDeletePatient = async function() {
+        if (!pendingDeleteId) return;
+        const id = pendingDeleteId;
+        window.closeDeleteModal();
         
         try {
-            const response = await fetch(`http://127.0.0.1:8000/api/patients/${currentPatientId}`, {
+            const response = await fetch(`http://127.0.0.1:8000/api/patients/${id}`, {
                 method: 'DELETE'
             });
             
             if (response.ok) {
                 // Remove from local array
-                patientHistory = patientHistory.filter(p => p._id !== currentPatientId);
-                currentPatientId = null;
+                patientHistory = patientHistory.filter(p => p._id !== id);
+                if (currentPatientId === id) {
+                    currentPatientId = null;
+                }
                 
                 // Update UI
                 renderGridDashboard();
-                showView('gridDashboardView');
+                if (!currentPatientId) {
+                    showView('gridDashboardView');
+                }
                 showToast('success', '🗑️ Record deleted successfully.');
             } else {
                 const errData = await response.json().catch(() => ({}));

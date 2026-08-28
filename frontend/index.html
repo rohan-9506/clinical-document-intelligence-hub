@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediLyft Hub — Clinical Intelligence Platform</title>
     <meta name="description" content="AI-powered clinical document intelligence extraction and analysis platform.">
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -51,6 +51,21 @@
      TOAST CONTAINER
      ============================================ -->
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- ============================================
+     CUSTOM DELETE MODAL
+     ============================================ -->
+<div class="custom-modal-overlay" id="deleteModalOverlay">
+    <div class="custom-modal">
+        <div class="modal-icon">⚠️</div>
+        <h3>Delete Patient Record</h3>
+        <p>Are you sure you want to permanently delete this patient record and its associated document? This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-primary danger-btn" onclick="confirmDeletePatient()">Delete Permanently</button>
+        </div>
+    </div>
+</div>
 
 <!-- ============================================
      APP SHELL
@@ -261,6 +276,6 @@
     </main>
 </div>
 
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
