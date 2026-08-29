@@ -1,0 +1,24 @@
+PATIENT CLINICAL SUMMARY
+========================
+Patient Name: Emily R. Chen
+DOB: 1985-04-12
+Patient ID: 994-EMC-22
+
+REASON FOR VISIT:
+Patient complains of persistent migraines over the last 3 weeks, accompanied by mild nausea and sensitivity to light. No history of aura.
+
+LAB RESULTS (Blood Panel - 2026-08-28):
+- Hemoglobin: 13.2 g/dL (Normal)
+- WBC: 6.5 x10^3/uL (Normal)
+- Platelets: 240 x10^3/uL (Normal)
+- Fasting Glucose: 92 mg/dL (Normal)
+- Vitamin D: 18 ng/mL (LOW - indicates deficiency)
+
+NOTES:
+Patient's vitals are stable. Blood pressure is 118/76. Heart rate is 72 bpm. 
+The low Vitamin D level may be contributing to fatigue but is unlikely the primary cause of the migraines.
+
+RECOMMENDED ACTION:
+1. Prescribe Sumatriptan 50mg as needed for acute migraine relief.
+2. Start Vitamin D3 supplementation (5000 IU daily).
+3. Schedule follow-up neurology consultation if migraines persist for another 2 weeks.
