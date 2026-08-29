@@ -36,6 +36,30 @@ def process_file(file_bytes: bytes, filename: str) -> list[Image.Image]:
         except Exception as e:
             print(f"Error parsing image: {e}")
             raise
+    elif filename_lower.endswith('.txt'):
+        try:
+            import textwrap
+            from PIL import ImageDraw
+            text_content = file_bytes.decode('utf-8', errors='replace')
+            
+            # Create a blank white canvas (standard page size)
+            img = Image.new('RGB', (1200, 1600), color=(255, 255, 255))
+            d = ImageDraw.Draw(img)
+            
+            y_text = 40
+            for paragraph in text_content.split('\n'):
+                # Wrap text so it doesn't run off the image
+                lines = textwrap.wrap(paragraph, width=130)
+                if not lines:
+                    y_text += 20
+                for line in lines:
+                    d.text((40, y_text), line, fill=(0, 0, 0))
+                    y_text += 20
+                    
+            images.append(img)
+        except Exception as e:
+            print(f"Error parsing TXT: {e}")
+            raise
     else:
         raise ValueError("Unsupported file format. Please upload PDF, PNG, or JPG.")
         
