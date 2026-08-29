@@ -14,7 +14,10 @@ load_dotenv("backend/.env")
 gemini_api_key = os.environ.get("GEMINI_API_KEY")
 groq_api_key   = os.environ.get("GROQ_API_KEY")
 
-if gemini_api_key:
+# Feature flag to temporarily disable Gemini if it's hitting too many rate limits
+USE_GEMINI = False
+
+if gemini_api_key and USE_GEMINI:
     genai.configure(api_key=gemini_api_key)
 
 groq_client = Groq(api_key=groq_api_key) if groq_api_key else None
@@ -52,7 +55,7 @@ def pil_to_base64(img: Image.Image) -> str:
 #  MODEL A: Gemini 2.5 Flash (2-pass)
 # ─────────────────────────────────────────────────────────────
 def run_gemini(images: list) -> dict | None:
-    if not gemini_api_key:
+    if not gemini_api_key or not USE_GEMINI:
         return None
     # Try primary model first, fall back through an extensive list if quota is exceeded
     models_to_try = [
@@ -70,7 +73,7 @@ def run_gemini(images: list) -> dict | None:
                 model_name=model_name,
                 generation_config={
                     "temperature": 0.0, "top_p": 0.95, "top_k": 64,
-                    "max_output_tokens": 4096, "response_mime_type": "application/json"
+                    "max_output_tokens": 1500, "response_mime_type": "application/json"
                 }
             )
             # Single Pass — Extract and Score simultaneously
@@ -135,7 +138,7 @@ Read handwriting carefully. Combine info across all pages."""
             model=GROQ_VISION_MODEL,
             messages=[{"role": "user", "content": content}],
             temperature=0.0,
-            max_tokens=4096,
+            max_tokens=1500,
             response_format={"type": "json_object"}
         )
         
@@ -358,10 +361,12 @@ def analyze_document_images(images: list) -> str:
     Falls back to single model if one is unavailable or errors.
     Falls back to mock data if no API keys are set OR both models fail.
     """
-    if not gemini_api_key and not groq_api_key:
+    if not USE_GEMINI and not groq_api_key:
+        raise ValueError("Groq API key not provided and Gemini is disabled.")
+    elif not gemini_api_key and not groq_api_key:
         raise ValueError("No API keys provided for Gemini or Groq.")
 
-    print("[Ensemble] Firing Gemini and Groq in parallel...")
+    print(f"[Ensemble] Firing AI extraction... (Gemini Enabled: {USE_GEMINI})")
     
     # Calculate dynamic timeout based on page count: base 15s + 10s per page
     num_pages = len(images)
@@ -369,16 +374,19 @@ def analyze_document_images(images: list) -> str:
     print(f"[Ensemble] Dynamic timeout set to {dynamic_timeout}s for {num_pages} pages.")
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        future_a = executor.submit(run_gemini, images)
+        future_a = executor.submit(run_gemini, images) if USE_GEMINI else None
         future_b = executor.submit(run_groq, images)
         
-        try:
-            result_a = future_a.result(timeout=dynamic_timeout)
-        except concurrent.futures.TimeoutError:
-            print(f"[Ensemble] Gemini Thread timed out after {dynamic_timeout}s!")
-            result_a = None
-        except Exception as e:
-            print(f"[Ensemble] Gemini Thread Exception: {e}")
+        if future_a:
+            try:
+                result_a = future_a.result(timeout=dynamic_timeout)
+            except concurrent.futures.TimeoutError:
+                print(f"[Ensemble] Gemini Thread timed out after {dynamic_timeout}s!")
+                result_a = None
+            except Exception as e:
+                print(f"[Ensemble] Gemini Thread Exception: {e}")
+                result_a = None
+        else:
             result_a = None
             
         try:
