@@ -17,8 +17,8 @@ def process_file(file_bytes: bytes, filename: str) -> list[Image.Image]:
             doc = fitz.open(stream=file_bytes, filetype="pdf")
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
-                # Render page to an image (pixmap) at 200 DPI (zoom=2 roughly gives ~144-200 DPI)
-                zoom = 2.0
+                # Render page to an image (pixmap) at 108 DPI (zoom=1.5) to speed up AI processing
+                zoom = 1.5
                 mat = fitz.Matrix(zoom, zoom)
                 pix = page.get_pixmap(matrix=mat)
                 

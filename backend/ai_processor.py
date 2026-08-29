@@ -36,26 +36,15 @@ EXTRACTION_SCHEMA = """
 }
 """
 
-VERIFIED_SCHEMA = """
-{
-  "document_type": {"type": "string", "confidence_score": integer},
-  "patient_info": {"name": "string", "id": "string", "dob": "string", "confidence_score": integer},
-  "urgency_level": {"score": integer, "label": "string", "confidence_score": integer},
-  "summary": {"text": "string", "confidence_score": integer},
-  "risk_flags": [{"level": "string", "reason": "string", "confidence_score": integer}],
-  "medications": [{"name": "string", "status": "string", "confidence_score": integer}],
-  "clinical_findings": [{"finding": "string", "confidence_score": integer}],
-  "icd_codes": [{"code": "string", "description": "string", "confidence_score": integer}],
-  "follow_up_actions": [{"action": "string", "priority": "string", "confidence_score": integer}]
-}
-"""
+VERIFIED_SCHEMA = '{"document_type":{"type":"string","confidence_score":"integer"},"patient_info":{"name":"string","id":"string","dob":"string","confidence_score":"integer"},"urgency_level":{"score":"integer","label":"string","confidence_score":"integer"},"summary":{"text":"string","confidence_score":"integer"},"risk_flags":[{"level":"string","reason":"string","confidence_score":"integer"}],"medications":[{"name":"string","status":"string","confidence_score":"integer"}],"clinical_findings":[{"finding":"string","confidence_score":"integer"}],"icd_codes":[{"code":"string","description":"string","confidence_score":"integer"}],"follow_up_actions":[{"action":"string","priority":"string","confidence_score":"integer"}]}'
 
 # ─────────────────────────────────────────────────────────────
 #  Helper: PIL image → base64 data URL (for Groq)
 # ─────────────────────────────────────────────────────────────
 def pil_to_base64(img: Image.Image) -> str:
     buf = BytesIO()
-    img.save(buf, format="JPEG", quality=90)
+    # Compress image specifically for Groq Vision network transfer
+    img.save(buf, format="JPEG", quality=75)
     return base64.b64encode(buf.getvalue()).decode("utf-8")
 
 
@@ -71,17 +60,8 @@ def run_gemini(images: list) -> dict | None:
         "gemini-3.6-flash",
         "gemini-3.5-flash",
         "gemini-2.5-flash",
-        "gemini-2.5-pro",
         "gemini-2.0-flash",
-        "gemini-2.0-flash-lite-preview-02-05",
-        "gemini-2.0-pro-exp-02-05",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-pro-latest",
-        "gemini-1.5-flash-8b-latest",
-        "gemini-1.0-pro-vision-latest"
+        "gemini-1.5-flash"
     ]
     for model_name in models_to_try:
         try:
@@ -90,7 +70,7 @@ def run_gemini(images: list) -> dict | None:
                 model_name=model_name,
                 generation_config={
                     "temperature": 0.0, "top_p": 0.95, "top_k": 64,
-                    "max_output_tokens": 8192, "response_mime_type": "application/json"
+                    "max_output_tokens": 1500, "response_mime_type": "application/json"
                 }
             )
             # Single Pass — Extract and Score simultaneously
@@ -155,6 +135,7 @@ Read handwriting carefully. Combine info across all pages."""
             model=GROQ_VISION_MODEL,
             messages=[{"role": "user", "content": content}],
             temperature=0.0,
+            max_tokens=1500,
             response_format={"type": "json_object"}
         )
         
@@ -382,18 +363,32 @@ def analyze_document_images(images: list) -> str:
 
     print("[Ensemble] Firing Gemini and Groq in parallel...")
     
+    # Calculate dynamic timeout based on page count: base 15s + 10s per page
+    num_pages = len(images)
+    dynamic_timeout = 15 + (num_pages * 10)
+    print(f"[Ensemble] Dynamic timeout set to {dynamic_timeout}s for {num_pages} pages.")
+    
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         future_a = executor.submit(run_gemini, images)
         future_b = executor.submit(run_groq, images)
         
         try:
-            result_a = future_a.result()
+            result_a = future_a.result(timeout=dynamic_timeout)
+        except concurrent.futures.TimeoutError:
+            print(f"[Ensemble] Gemini Thread timed out after {dynamic_timeout}s!")
+            result_a = None
         except Exception as e:
             print(f"[Ensemble] Gemini Thread Exception: {e}")
             result_a = None
             
         try:
-            result_b = future_b.result()
+            # We already waited for Gemini, so only wait whatever time is left if any, but since they run in parallel,
+            # if we timed out on A, B might be done. If A finished fast, we give B the remaining time up to the max timeout.
+            # Using the same timeout value is safe here because it's absolute from when it was submitted.
+            result_b = future_b.result(timeout=dynamic_timeout)
+        except concurrent.futures.TimeoutError:
+            print(f"[Ensemble] Groq Thread timed out after {dynamic_timeout}s!")
+            result_b = None
         except Exception as e:
             print(f"[Ensemble] Groq Thread Exception: {e}")
             result_b = None
