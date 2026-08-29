@@ -108,13 +108,7 @@ async def analyze_documents(files: List[UploadFile] = File(...)):
         filename = file.filename.lower()
         
         try:
-            # Save raw file to GridFS
-            grid_in = app.gridfs.open_upload_stream(filename)
-            await grid_in.write(contents)
-            await grid_in.close()
-            saved_file_id = str(grid_in._id)
-
-            # Process for AI Extraction
+            # Process for AI Extraction (converts everything to a list of PIL Images)
             images = process_file(contents, filename)
             all_images.extend(images)
         except Exception as e:
@@ -122,6 +116,23 @@ async def analyze_documents(files: List[UploadFile] = File(...)):
 
     if not all_images:
         raise HTTPException(status_code=400, detail="No valid images could be extracted")
+
+    # Synthesize all uploaded files (PDFs, JPGs, TXTs) into a single unified PDF for the frontend viewer
+    try:
+        import io
+        pdf_bytes = io.BytesIO()
+        if len(all_images) == 1:
+            all_images[0].save(pdf_bytes, format="PDF")
+        else:
+            all_images[0].save(pdf_bytes, format="PDF", save_all=True, append_images=all_images[1:])
+        
+        pdf_bytes.seek(0)
+        grid_in = app.gridfs.open_upload_stream("fused_patient_document.pdf")
+        await grid_in.write(pdf_bytes.read())
+        await grid_in.close()
+        saved_file_id = str(grid_in._id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error synthesizing PDF: {str(e)}")
 
     # Run the extracted images through the Multi-Pass AI Critic Pattern
     try:
