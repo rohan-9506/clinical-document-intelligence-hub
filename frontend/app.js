@@ -7,17 +7,17 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ─── DOM References ─────────────────────────────────────────
-    const dropZone          = document.getElementById('dropZone');
-    const fileInput         = document.getElementById('fileInput');
-    const analyzeBtn        = document.getElementById('analyzeBtn');
-    const uploadQueue       = document.getElementById('uploadQueue');
-    const pdfContainer      = document.getElementById('pdfContainer');
-    const patientGrid       = document.getElementById('patientGrid');
-    const emptyGridState    = document.getElementById('emptyGridState');
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const uploadQueue = document.getElementById('uploadQueue');
+    const pdfContainer = document.getElementById('pdfContainer');
+    const patientGrid = document.getElementById('patientGrid');
+    const emptyGridState = document.getElementById('emptyGridState');
     const processingOverlay = document.getElementById('processingOverlay');
 
     // ─── State ──────────────────────────────────────────────────
-    let currentFiles  = [];
+    let currentFiles = [];
     let patientHistory = [];
     let currentPatientId = null;
     let pendingDeleteId = null;
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchPatientHistory();
 
     // ─── DRAG & DROP ─────────────────────────────────────────────
-    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', e => {
         e.preventDefault();
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const fileURL = URL.createObjectURL(currentFiles[0]);
                 const newData = { ...result.data, id: Date.now().toString(), fileUrl: fileURL };
-                
+
                 // Remove duplicates if any
                 patientHistory = patientHistory.filter(p => p._id !== newData._id);
                 patientHistory.unshift(newData);
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         processingOverlay.classList.add('active');
 
         // Reset steps
-        [1,2,3,4].forEach(i => {
+        [1, 2, 3, 4].forEach(i => {
             const s = document.getElementById(`step${i}`);
             s.classList.remove('active', 'done');
         });
@@ -174,8 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const highestRisk = getHighestRisk(patient);
             const urgencyScore = patient.urgency_level ? patient.urgency_level.score : 0;
             const urgencyColor = urgencyScore >= 8 ? 'var(--risk-high)'
-                               : urgencyScore >= 5 ? 'var(--risk-med)'
-                               : 'var(--risk-low)';
+                : urgencyScore >= 5 ? 'var(--risk-med)'
+                    : 'var(--risk-low)';
             const urgencyBarWidth = (urgencyScore / 10) * 100;
 
             const card = document.createElement('div');
@@ -211,13 +211,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getHighestRisk(patient) {
         if (!patient.risk_flags || !patient.risk_flags.length) return 'low';
-        if (patient.risk_flags.some(r => r.level.toLowerCase() === 'high'))   return 'high';
+        if (patient.risk_flags.some(r => r.level.toLowerCase() === 'high')) return 'high';
         if (patient.risk_flags.some(r => r.level.toLowerCase() === 'medium')) return 'medium';
         return 'low';
     }
 
     function updateStats() {
-        document.getElementById('statTotal').textContent    = patientHistory.length;
+        document.getElementById('statTotal').textContent = patientHistory.length;
         document.getElementById('statHighRisk').textContent = patientHistory.filter(p => getHighestRisk(p) === 'high').length;
         const totalMeds = patientHistory.reduce((acc, p) => acc + (p.medications ? p.medications.length : 0), 0);
         document.getElementById('statTotalMeds').textContent = totalMeds;
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── PATIENT DETAIL VIEW ─────────────────────────────────────
     function openPatientDetail(data) {
         currentPatientId = data._id;
-        
+
         // PDF Viewer
         if (data.file_id) {
             // Document retrieved securely from MongoDB GridFS
@@ -285,24 +285,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Follow-up Actions
         renderFollowups(data.follow_up_actions);
-        
+
         showView('dashboardView');
     }
 
     function renderUrgencyDial(urgency) {
         const score = urgency ? urgency.score : 0;
         const label = urgency ? urgency.label : '—';
-        const conf  = urgency ? urgency.confidence_score : '—';
+        const conf = urgency ? urgency.confidence_score : '—';
 
-        document.getElementById('dialScore').textContent   = score;
+        document.getElementById('dialScore').textContent = score;
         document.getElementById('urgencyLabel').textContent = label;
         document.getElementById('urgencyConfPill').textContent = `${conf}% Conf`;
 
         const descMap = {
             'Critical': 'Immediate clinical intervention required.',
-            'High':     'Elevated risk — prioritize follow-up actions.',
+            'High': 'Elevated risk — prioritize follow-up actions.',
             'Moderate': 'Monitor closely, follow standard care protocols.',
-            'Low':      'Routine care, no immediate concerns identified.'
+            'Low': 'Routine care, no immediate concerns identified.'
         };
         document.getElementById('urgencyDesc').textContent = descMap[label] || 'Urgency level assessed from document.';
 
@@ -372,8 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const tag = document.createElement('span');
             tag.className = 'finding-tag';
             const confColor = f.confidence_score >= 90 ? 'var(--risk-low)'
-                            : f.confidence_score >= 70 ? 'var(--risk-med)'
-                            : 'var(--risk-high)';
+                : f.confidence_score >= 70 ? 'var(--risk-med)'
+                    : 'var(--risk-high)';
             tag.innerHTML = `
                 <span class="finding-conf-dot" style="background:${confColor};" title="${f.confidence_score}% confidence"></span>
                 ${f.finding}`;
@@ -428,12 +428,12 @@ document.addEventListener('DOMContentLoaded', () => {
         patientHistory.forEach((patient) => {
             const pi = patient.patient_info || {};
             const dt = patient.document_type || {};
-            
+
             const li = document.createElement('li');
             li.style.display = 'flex';
             li.style.justifyContent = 'space-between';
             li.style.alignItems = 'center';
-            
+
             li.innerHTML = `
                 <div>
                     <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.2rem;">${pi.name || 'Unknown Patient'}</div>
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button class="sidebar-delete-btn" title="Delete record">🗑️</button>
             `;
-            
+
             li.addEventListener('click', (e) => {
                 // If they clicked the delete button, don't open the detail view
                 if (e.target.closest('.sidebar-delete-btn')) {
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const localIds = patientHistory.map(p => p._id);
                     const newHistorical = fetched.filter(f => !localIds.includes(f._id));
                     patientHistory = [...patientHistory, ...newHistorical];
-                    
+
                     updateSidebarList();
                     renderGridDashboard();
                 }
@@ -477,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ─── VIEW ROUTING ─────────────────────────────────────────────
-    window.showView = function(viewId) {
+    window.showView = function (viewId) {
         document.querySelectorAll('.view').forEach(v => {
             v.classList.remove('active');
         });
@@ -496,51 +496,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.startNewSession = function() {
+    window.startNewSession = function () {
         showView('uploadView');
         uploadQueue.innerHTML = '';
         fileInput.value = '';
         currentFiles = [];
         analyzeBtn.classList.add('hidden');
-        
+
         // Directly trigger the file selection dialog
         setTimeout(() => {
             fileInput.click();
         }, 100);
     };
 
-    window.deleteCurrentPatient = function() {
+    window.deleteCurrentPatient = function () {
         window.deletePatient(currentPatientId);
     };
 
-    window.deletePatient = function(id) {
+    window.deletePatient = function (id) {
         if (!id) return;
         pendingDeleteId = id;
         document.getElementById('deleteModalOverlay').classList.add('active');
     };
 
-    window.closeDeleteModal = function() {
+    window.closeDeleteModal = function () {
         pendingDeleteId = null;
         document.getElementById('deleteModalOverlay').classList.remove('active');
     };
 
-    window.confirmDeletePatient = async function() {
+    window.confirmDeletePatient = async function () {
         if (!pendingDeleteId) return;
         const id = pendingDeleteId;
         window.closeDeleteModal();
-        
+
         try {
             const response = await fetch(`/api/patients/${id}`, {
                 method: 'DELETE'
             });
-            
+
             if (response.ok) {
                 // Remove from local array
                 patientHistory = patientHistory.filter(p => p._id !== id);
                 if (currentPatientId === id) {
                     currentPatientId = null;
                 }
-                
+
                 // Update UI
                 renderGridDashboard();
                 if (!currentPatientId) {
