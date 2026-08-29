@@ -587,13 +587,15 @@ window.zoomDoc = function(delta) {
         // Prevent flexbox from automatically shrinking the iframe when we try to zoom in
         iframe.style.flexShrink = '0';
         
-        // Simply resize the physical iframe dimensions.
+        // ONLY resize the physical iframe width. 
+        // For PDFs, this triggers the native viewer to refit to the new width horizontally.
+        // We MUST keep the height at exactly 100% so we don't spawn a second, redundant vertical scrollbar in the outer container!
         iframe.style.width = window.currentZoom + '%';
-        iframe.style.height = window.currentZoom + '%';
+        iframe.style.height = '100%';
         
         // Force minimum dimensions so flex containers can't override it
         iframe.style.minWidth = window.currentZoom + '%';
-        iframe.style.minHeight = window.currentZoom + '%';
+        iframe.style.minHeight = '100%';
     }
     
     const wrapper = document.getElementById('zoomWrapper');
