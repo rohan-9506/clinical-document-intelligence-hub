@@ -6,7 +6,8 @@ This solution directly addresses the massive manual burden of reviewing healthca
 
 ## 🚀 Live Demonstration
 🔥 **The application is fully deployed and live on Render (Free Tier):**
-👉 [https://medilyft-ai.onrender.com](https://medilyft-ai.onrender.com)
+👉 **Live Dashboard**: [https://medilyft-ai.onrender.com](https://medilyft-ai.onrender.com)
+▶️ **Video Walkthrough (Loom)**: [Watch the Demo Video](https://www.loom.com/share/d50f7c1d95fd4c86b0b00f9adae01d3b)
 
 ---
 
