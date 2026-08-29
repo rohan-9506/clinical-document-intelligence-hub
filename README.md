@@ -1,4 +1,4 @@
-# Firstsource Clinical Document Intelligence Hub (PoC)
+# Clinical Document Intelligence Hub (PoC)
 
 An advanced Proof-of-Concept (PoC) built for Firstsource to demonstrate how Dual-LLM Vision models can securely ingest unstructured, fragmented clinical documents and automatically surface structured, decision-ready intelligence.
 
