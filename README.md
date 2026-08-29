@@ -56,8 +56,8 @@ A complete Proof-of-Concept demonstrating how AI can ingest unstructured clinica
 
 ## How to use the Demo
 
-1. On the upload screen, drag and drop the provided `Advanced_Clinical_Report_v2.pdf` from the `sample_documents/` folder.
-2. Click **Generate Intelligence**.
-3. The backend will parse the PDF, save it to GridFS, and run the Dual-LLM Vision models in parallel to extract structured data.
-4. The Split-Screen dashboard will render, allowing you to review the native PDF streamed from MongoDB alongside the AI-extracted patient info, risk flags, and ICD codes.
-5. Do a "Hard Refresh" (Ctrl+Shift+R). Your patient's historical data and PDF will automatically load from the database into the sidebar!
+1. **Single File Upload**: On the upload screen, drag and drop the provided `Advanced_Clinical_Report_v2.pdf` from the `sample_documents/` folder.
+2. **Multiple File Upload**: You can drag and drop multiple files at the same time (e.g. a PDF lab report AND a JPEG ECG scan). The AI will dynamically combine and merge the data across all documents. *(Note: This feature is designed to fuse data for a **single patient**. Do not upload documents for different patients at the same time).*
+3. Click **Generate Intelligence**.
+4. The backend will parse the documents and run the Dual-LLM Vision models in parallel to extract structured data.
+5. The Split-Screen dashboard will render, allowing you to review the native document alongside the AI-extracted patient info, risk flags, and ICD codes.

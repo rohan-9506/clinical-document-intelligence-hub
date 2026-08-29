@@ -119,7 +119,12 @@ Extract information from the attached document image(s) and return ONLY a JSON o
 Read handwriting carefully. Combine info across all pages."""
         }]
 
-        for img in images:
+        # Groq Vision has a strict hard limit of 3 images maximum per request
+        groq_images = images[:3]
+        if len(images) > 3:
+            print(f"[Groq] Warning: Document has {len(images)} pages, truncating to 3 for Groq.")
+            
+        for img in groq_images:
             b64 = pil_to_base64(img)
             content.append({
                 "type": "image_url",
