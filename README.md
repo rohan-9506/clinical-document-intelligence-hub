@@ -2,15 +2,19 @@
 
 A complete Proof-of-Concept demonstrating how AI can ingest unstructured clinical documents and surface structured, actionable intelligence. This solution addresses the manual burden of reviewing fragmented healthcare data by transforming documents (like intake forms, handwritten notes, and ECG reports) into consistent, decision-ready outputs.
 
+## Live Demonstration
+🔥 **The application is fully deployed and live on Render (Free Tier):**
+👉 [https://medilyft-ai.onrender.com](https://medilyft-ai.onrender.com)
+
 ## Architecture & Design Notes
 
 - **Frontend (Vanilla HTML/CSS/JS)**: A bespoke, glassmorphism dark-mode UI with dynamic micro-animations. Features a split-screen dashboard to read the native document on the left while reviewing extracted intelligence on the right.
 - **Backend (FastAPI)**: A high-performance Python backend serving the web application. It handles PDF-to-Image parsing, orchestration of AI models, and database communication.
-- **Database (MongoDB + GridFS)**: Uses MongoDB to permanently store extracted patient JSON records. Uses **GridFS** to break down and securely store the raw multi-megabyte PDF binaries, streaming them directly to the frontend viewer.
-- **Dual-LLM Consensus Engine**: 
-  - The AI processor leverages both **Google Gemini Flash** and **Groq Llama 3.2 Vision** simultaneously. 
-  - Using Python's `ThreadPoolExecutor`, both network requests are fired **in parallel**, dramatically reducing latency. 
-  - The results from both models are merged. The system automatically cross-verifies fields and computes a `consensus_rate`, flagging contradictory data for human review.
+- **Database (MongoDB Atlas Cloud + GridFS)**: Uses MongoDB to permanently store extracted patient JSON records. Uses **GridFS** to break down and securely store the raw multi-megabyte PDF binaries, streaming them directly to the frontend viewer.
+- **Dual-LLM Consensus Engine (Optimized)**: 
+  - The AI processor leverages both **Google Gemini Flash** and **Groq Vision** simultaneously. 
+  - **Performance**: We optimized the AI pipeline by collapsing multi-pass extraction into a highly efficient **Single-Pass extraction and scoring prompt**, effectively cutting AI latency in half.
+  - Using Python's `ThreadPoolExecutor`, both LLM requests are fired **in parallel**. The results are mathematically merged to compute a `consensus_rate`, flagging contradictory data for human review.
 
 ## Prerequisites
 
