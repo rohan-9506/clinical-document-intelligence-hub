@@ -584,11 +584,16 @@ window.zoomDoc = function(delta) {
         iframe.style.transform = 'none';
         iframe.style.zoom = 'normal';
         
+        // Prevent flexbox from automatically shrinking the iframe when we try to zoom in
+        iframe.style.flexShrink = '0';
+        
         // Simply resize the physical iframe dimensions.
-        // For PDFs, this triggers the native viewer to refit to the new huge/tiny width.
-        // For Images, this gives the browser's native image viewer more/less space to render.
         iframe.style.width = window.currentZoom + '%';
         iframe.style.height = window.currentZoom + '%';
+        
+        // Force minimum dimensions so flex containers can't override it
+        iframe.style.minWidth = window.currentZoom + '%';
+        iframe.style.minHeight = window.currentZoom + '%';
     }
     
     const wrapper = document.getElementById('zoomWrapper');
