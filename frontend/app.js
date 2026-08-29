@@ -578,10 +578,24 @@ window.zoomDoc = function(delta) {
     
     document.getElementById('zoomLevel').textContent = window.currentZoom + '%';
     
-    // Apply CSS zoom to the wrapper so layout and scrollbars recalculate correctly
+    const iframe = document.querySelector('#zoomWrapper iframe') || document.querySelector('#pdfContainer iframe');
+    if (iframe) {
+        // Reset any weird transforms or zoom properties
+        iframe.style.transform = 'none';
+        iframe.style.zoom = 'normal';
+        
+        // Simply resize the physical iframe dimensions.
+        // For PDFs, this triggers the native viewer to refit to the new huge/tiny width.
+        // For Images, this gives the browser's native image viewer more/less space to render.
+        iframe.style.width = window.currentZoom + '%';
+        iframe.style.height = window.currentZoom + '%';
+    }
+    
     const wrapper = document.getElementById('zoomWrapper');
     if (wrapper) {
-        wrapper.style.zoom = (window.currentZoom / 100);
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100%';
+        wrapper.style.zoom = 'normal';
     }
 };
 
