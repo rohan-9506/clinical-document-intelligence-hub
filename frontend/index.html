@@ -187,9 +187,20 @@
 
             <div class="split-screen">
                 <!-- Left: PDF Viewer -->
-                <div class="document-viewer">
-                    <div class="viewer-header">Source Document</div>
-                    <div class="pdf-container" id="pdfContainer"></div>
+                <!-- Left: PDF Viewer -->
+                <div class="document-viewer" style="display: flex; flex-direction: column;">
+                    <div class="viewer-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Source Document</span>
+                        <div class="doc-toolbar" id="docToolbar" style="gap: 0.5rem; display: flex; align-items: center;">
+                            <button class="icon-btn" onclick="zoomDoc(-25)" title="Zoom Out" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">-</button>
+                            <span id="zoomLevel" style="font-size: 0.8rem; color: var(--text-muted); min-width: 40px; text-align: center;">100%</span>
+                            <button class="icon-btn" onclick="zoomDoc(25)" title="Zoom In" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">+</button>
+                            <button class="icon-btn" onclick="downloadDoc()" title="Download Source" style="background: var(--accent-blue); border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 8px;">⬇️</button>
+                        </div>
+                    </div>
+                    <div class="pdf-container" id="pdfContainer" style="overflow: auto; flex: 1; display: flex; justify-content: center; align-items: flex-start; background: #fff;">
+                        <!-- PDF iframe injected here -->
+                    </div>
                 </div>
 
                 <!-- Right: Intelligence Panel -->

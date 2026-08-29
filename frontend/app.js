@@ -233,13 +233,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function openPatientDetail(data) {
         currentPatientId = data._id;
 
+        // Reset zoom
+        window.currentZoom = 100;
+        document.getElementById('zoomLevel').textContent = '100%';
+
         // PDF Viewer
         if (data.file_id) {
             // Document retrieved securely from MongoDB GridFS
-            pdfContainer.innerHTML = `<iframe src="/api/documents/${data.file_id}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
+            pdfContainer.innerHTML = `<iframe src="/api/documents/${data.file_id}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none; transition: width 0.2s, height 0.2s;"></iframe>`;
         } else if (data.fileUrl) {
             // Temporary fallback for older unsaved sessions
-            pdfContainer.innerHTML = `<iframe src="${data.fileUrl}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
+            pdfContainer.innerHTML = `<iframe src="${data.fileUrl}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none; transition: width 0.2s, height 0.2s;"></iframe>`;
         } else {
             pdfContainer.innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:var(--text-muted); flex-direction:column; gap:1rem;">
                 <span style="font-size:3rem;">📂</span>
@@ -562,3 +566,36 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── INIT ─────────────────────────────────────────────────────
     renderGridDashboard();
 });
+
+// ─── GLOBAL TOOLBAR FUNCTIONS ────────────────────────────────
+window.currentZoom = 100;
+
+window.zoomDoc = function(delta) {
+    window.currentZoom += delta;
+    if (window.currentZoom < 25) window.currentZoom = 25;
+    if (window.currentZoom > 400) window.currentZoom = 400;
+    
+    document.getElementById('zoomLevel').textContent = window.currentZoom + '%';
+    
+    const iframe = document.querySelector('#pdfContainer iframe');
+    if (iframe) {
+        iframe.style.width = window.currentZoom + '%';
+        iframe.style.height = window.currentZoom + '%';
+    }
+};
+
+window.downloadDoc = function() {
+    const iframe = document.querySelector('#pdfContainer iframe');
+    if (!iframe) return;
+    
+    // The src contains #toolbar=0 which we don't need for the download link, but it's fine.
+    const url = iframe.src;
+    
+    const a = document.createElement('a');
+    a.href = url;
+    // Attempt to force download
+    a.download = 'Source_Document';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+};
