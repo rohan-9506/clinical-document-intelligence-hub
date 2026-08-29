@@ -70,7 +70,7 @@ def run_gemini(images: list) -> dict | None:
                 model_name=model_name,
                 generation_config={
                     "temperature": 0.0, "top_p": 0.95, "top_k": 64,
-                    "max_output_tokens": 1500, "response_mime_type": "application/json"
+                    "max_output_tokens": 4096, "response_mime_type": "application/json"
                 }
             )
             # Single Pass — Extract and Score simultaneously
@@ -135,7 +135,7 @@ Read handwriting carefully. Combine info across all pages."""
             model=GROQ_VISION_MODEL,
             messages=[{"role": "user", "content": content}],
             temperature=0.0,
-            max_tokens=1500,
+            max_tokens=4096,
             response_format={"type": "json_object"}
         )
         
