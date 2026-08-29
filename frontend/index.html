@@ -198,8 +198,10 @@
                             <button class="icon-btn" onclick="downloadDoc()" title="Download Source" style="background: var(--accent-blue); border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 8px;">⬇️</button>
                         </div>
                     </div>
-                    <div class="pdf-container" id="pdfContainer" style="overflow: auto; flex: 1; display: flex; justify-content: center; align-items: flex-start; background: #fff;">
-                        <!-- PDF iframe injected here -->
+                    <div class="pdf-container" id="pdfContainer" style="overflow: auto; flex: 1; display: flex; justify-content: center; align-items: flex-start; background: #fff; position: relative;">
+                        <div id="zoomWrapper" style="width: 100%; height: 100%; transition: zoom 0.2s ease; transform-origin: top center; display: flex; justify-content: center;">
+                            <!-- PDF iframe injected here -->
+                        </div>
                     </div>
                 </div>
 

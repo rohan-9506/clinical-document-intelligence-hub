@@ -238,14 +238,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('zoomLevel').textContent = '100%';
 
         // PDF Viewer
+        const zoomWrapper = document.getElementById('zoomWrapper') || pdfContainer;
         if (data.file_id) {
             // Document retrieved securely from MongoDB GridFS
-            pdfContainer.innerHTML = `<iframe src="/api/documents/${data.file_id}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none; transition: width 0.2s, height 0.2s;"></iframe>`;
+            zoomWrapper.innerHTML = `<iframe src="/api/documents/${data.file_id}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
         } else if (data.fileUrl) {
             // Temporary fallback for older unsaved sessions
-            pdfContainer.innerHTML = `<iframe src="${data.fileUrl}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none; transition: width 0.2s, height 0.2s;"></iframe>`;
+            zoomWrapper.innerHTML = `<iframe src="${data.fileUrl}#toolbar=0&view=FitH" type="application/pdf" width="100%" height="100%" style="border:none;"></iframe>`;
         } else {
-            pdfContainer.innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:var(--text-muted); flex-direction:column; gap:1rem;">
+            zoomWrapper.innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:var(--text-muted); flex-direction:column; gap:1rem;">
                 <span style="font-size:3rem;">📂</span>
                 <p>Source document not stored in database.</p>
             </div>`;
@@ -577,10 +578,10 @@ window.zoomDoc = function(delta) {
     
     document.getElementById('zoomLevel').textContent = window.currentZoom + '%';
     
-    const iframe = document.querySelector('#pdfContainer iframe');
-    if (iframe) {
-        iframe.style.width = window.currentZoom + '%';
-        iframe.style.height = window.currentZoom + '%';
+    // Apply CSS zoom to the wrapper so layout and scrollbars recalculate correctly
+    const wrapper = document.getElementById('zoomWrapper');
+    if (wrapper) {
+        wrapper.style.zoom = (window.currentZoom / 100);
     }
 };
 
